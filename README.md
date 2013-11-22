@@ -20,7 +20,7 @@ All you need to do is add the <code>SatelliteStore.{h,m}</code> files from the t
 
 ## Set Up
 
-The SatelliteStore object has two methods necessary to fetch products from the iTunes App Store. I recommend calling this in your AppDelegate, so that by the time a user has a chance to make a purchase you have already populated the inventory. Since SatelliteStore is a singleton class, you'll be working with the <code>[SatelliteStore shoppingCenter]</code> app-wide instantiation. All methods should go through the shoppingCenter to make sure things work. Here's some code you should add to your <code>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions</code> method in the AppDelegate file:
+The SatelliteStore object has two methods necessary to fetch products from the iTunes App Store. I recommend calling this in your AppDelegate, so that by the time a user has a chance to make a purchase you have already populated the inventory. Since SatelliteStore is a singleton class, you'll be working with the <code>[SatelliteStore shoppingCenter]</code> app-wide instantiation. All methods should go through the shoppingCenter to make sure things work. Here's some code you should add to your <code>- (BOOL)application:didFinishLaunchingWithOptions:</code> method in the AppDelegate file:
 
 ```objc
 // Satellite Store: Set Identifiers
