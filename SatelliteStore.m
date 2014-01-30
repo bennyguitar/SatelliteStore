@@ -179,7 +179,6 @@ static SatelliteStore * _shoppingCenter = nil;
     {
         // this is fine, the user just cancelled, so don’t notify
         [self finishTransaction:transaction wasSuccessful:NO];
-        [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
     }
 }
 
