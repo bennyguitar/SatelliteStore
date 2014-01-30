@@ -154,6 +154,9 @@ static SatelliteStore * _shoppingCenter = nil;
     // remove the transaction from the payment queue.
     [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
     
+    //Remove the transaction observer so there is no chance to send notification to nil object
+    [[SKPaymentQueue defaultQueue] removeTransactionObserver:self];
+    
     // Completion
     if (self.purchaseCompletion) {
         self.purchaseCompletion(wasSuccessful);
