@@ -16,6 +16,12 @@ SatelliteStore is a modernized block-based StoreKit wrapper for iOS with very li
 
 ## Installation
 
+**Cocoapods**
+
+<code>pod 'SatelliteStore'</code>
+
+**Adding Files**
+
 All you need to do is add the <code>SatelliteStore.{h,m}</code> files from the top-level directory into your project. Then, to use the Store in a controller or class, just add <code>#import "SatelliteStore.h"</code> to your other imports. Now you're ready to blast off!
 
 ## Set Up
