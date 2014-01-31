@@ -27,7 +27,16 @@
 
 
 typedef void (^GetProductsCompletion) (BOOL success);
-typedef void (^PurchaseProductCompletion) (BOOL purchased);
+typedef void (^PurchaseProductCompletion) (BOOL purchased, NSString * productIdentifier);
+typedef void (^RestoreProductsCompletion) (NSArray * productIdentifiers);
+
+@interface SatellitePurchaseBlockObject : NSObject
+
+@property (nonatomic, strong) NSString * productIdentifier;
+@property (assign) PurchaseProductCompletion completionBlock;
+
++(SatellitePurchaseBlockObject *)blockObjectForProductIdentifier:(NSString *)productIdentifier withCompletion:(PurchaseProductCompletion)completion;
+@end
 
 // Class
 @interface SatelliteStore : NSObject <SKPaymentTransactionObserver,SKProductsRequestDelegate>
@@ -35,8 +44,9 @@ typedef void (^PurchaseProductCompletion) (BOOL purchased);
 @property (nonatomic, strong) SKProductsRequest *ProductsRequest;
 @property (nonatomic, retain) NSMutableDictionary *Inventory;
 @property (nonatomic, retain) NSSet *InventoryIdentifiers;
-@property (nonatomic, strong) PurchaseProductCompletion purchaseCompletion;
-@property (nonatomic, strong) GetProductsCompletion getProductsCompletion;
+@property (nonatomic, strong, readonly) NSMutableArray * purchaseCompletionBlockObjects;
+@property (nonatomic, strong, readonly) GetProductsCompletion getProductsCompletion;
+@property (nonatomic, strong, readonly) RestoreProductsCompletion restoreProductsCompletion;
 
 
 // Singleton
@@ -52,7 +62,7 @@ typedef void (^PurchaseProductCompletion) (BOOL purchased);
 - (void)purchaseProductWithIdentifier:(NSString *)identifier withCompletion:(PurchaseProductCompletion)completion;
 
 // Restore Purchases
-- (void)restorePurchasesWithCompletion:(PurchaseProductCompletion)completion;
+- (void)restorePurchasesWithCompletion:(RestoreProductsCompletion)completion;
 
 // Inventory
 - (SKProduct *)productFromInventoryWithIdentifier:(NSString *)identifier;

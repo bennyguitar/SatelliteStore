@@ -22,6 +22,21 @@
 
 #import "SatelliteStore.h"
 
+@implementation SatellitePurchaseBlockObject
+
++(SatellitePurchaseBlockObject *)blockObjectForProductIdentifier:(NSString *)productIdentifier withCompletion:(PurchaseProductCompletion)completionBlock{
+    
+    SatellitePurchaseBlockObject * blockObject = [[self alloc] init];
+    
+    blockObject.productIdentifier = productIdentifier;
+    blockObject.completionBlock = completionBlock;
+    
+    return blockObject;
+    
+}
+
+@end
+
 @implementation SatelliteStore
 
 static SatelliteStore * _shoppingCenter = nil;
@@ -51,6 +66,7 @@ static SatelliteStore * _shoppingCenter = nil;
 	if (self = [super init]) {
         [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
         self.Inventory = [NSMutableDictionary dictionary];
+        _purchaseCompletionBlockObjects = [NSMutableArray array];
 	}
 	return self;
 }
@@ -70,7 +86,8 @@ static SatelliteStore * _shoppingCenter = nil;
 - (void)getProductsWithCompletion:(GetProductsCompletion)completion {
     // Set Completion
     if (completion) {
-        self.getProductsCompletion = completion;
+        
+        _getProductsCompletion = completion;
         
         // Get Products
         [self getProducts];
@@ -78,34 +95,43 @@ static SatelliteStore * _shoppingCenter = nil;
 }
 
 #pragma mark - Restore Purchases
-- (void)restorePurchasesWithCompletion:(PurchaseProductCompletion)completion {
-    if (completion) {
-        self.purchaseCompletion = completion;
-        [[SKPaymentQueue defaultQueue] restoreCompletedTransactions];
-    }
+- (void)restorePurchasesWithCompletion:(RestoreProductsCompletion)completion {
+    
+    _restoreProductsCompletion = completion;
+    
+    [[SKPaymentQueue defaultQueue] restoreCompletedTransactions];
+
 }
 
 #pragma mark - Buy a Product
 - (void)purchaseProduct:(SKProduct *)product {
+    
     SKPayment *payment = [SKPayment paymentWithProduct:product];
+    
     [[SKPaymentQueue defaultQueue] addPayment:payment];
+    
 }
 
 - (void)purchaseProductWithIdentifier:(NSString *)identifier withCompletion:(PurchaseProductCompletion)completion {
+    
     // Get Product from Inventory
     SKProduct *product = [self productFromInventoryWithIdentifier:identifier];
     
-    // Purchase the product if it's valid
-    if (completion) {
-        self.purchaseCompletion = completion;
+    //Purchase Product if it's valid, and is Open for business, add completion block to array
+    if(product && [self isOpenForBusiness]){
         
-        if (product && [self isOpenForBusiness]) {
-            [self purchaseProduct:product];
-        }
-        else {
-            completion(NO);
+        SatellitePurchaseBlockObject * blockObject = [SatellitePurchaseBlockObject blockObjectForProductIdentifier:identifier withCompletion:completion];
+        
+        [self.purchaseCompletionBlockObjects addObject:blockObject];
+        
+        [self purchaseProduct:product];
+        
+    }else{
+        if(completion){
+            completion(NO, nil);
         }
     }
+    
 }
 
 
@@ -125,6 +151,7 @@ static SatelliteStore * _shoppingCenter = nil;
 
 #pragma mark - Payment Queue
 - (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions {
+   
     for (SKPaymentTransaction *transaction in transactions)
     {
         switch (transaction.transactionState)
@@ -142,10 +169,29 @@ static SatelliteStore * _shoppingCenter = nil;
                 break;
         }
     }
+    
 }
 
 - (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue {
-    //
+    
+    if(_restoreProductsCompletion){
+        
+        NSMutableArray * productIdentifiers = [NSMutableArray array];
+        
+        for(SKPaymentTransaction * transaction in queue.transactions){
+            
+            if(transaction.transactionState == SKPaymentTransactionStateRestored){
+                
+                [productIdentifiers addObject:transaction.payment.productIdentifier];
+                
+            }
+            
+        }
+        
+        _restoreProductsCompletion(productIdentifiers);
+        
+    }
+    
 }
 
 #pragma mark - Payment Notifications
@@ -157,10 +203,19 @@ static SatelliteStore * _shoppingCenter = nil;
     //Remove the transaction observer so there is no chance to send notification to nil object
     [[SKPaymentQueue defaultQueue] removeTransactionObserver:self];
     
-    // Completion
-    if (self.purchaseCompletion) {
-        self.purchaseCompletion(wasSuccessful);
+    //Get the product identifier
+    NSString * productIdentifier = transaction.payment.productIdentifier;
+    
+    //predicate for finding the block object that matched the product identifier
+    NSPredicate * matchingProductIdentifier = [NSPredicate predicateWithFormat:@"SELF.productIdentifier = %@", productIdentifier];
+    
+    SatellitePurchaseBlockObject * blockObject = [self.purchaseCompletionBlockObjects filteredArrayUsingPredicate:matchingProductIdentifier].lastObject;
+    
+    if(blockObject.completionBlock){
+        blockObject.completionBlock(wasSuccessful, productIdentifier);
+        [self.purchaseCompletionBlockObjects removeObject:blockObject];
     }
+
 }
 
 - (void)restoreTransaction:(SKPaymentTransaction *)transaction
