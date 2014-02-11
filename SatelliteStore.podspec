@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'SatelliteStore'
-  s.version      = '1.0.0'
+  s.version      = '1.2.0'
   s.summary      = 'A modernized, block-based way to approach StoreKit for iOS'
   s.author = {
     'Ben Gordon' => 'brgordon@ua.edu'
