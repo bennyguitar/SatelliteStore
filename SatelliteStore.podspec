@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   }
   s.source = {
     :git => 'https://github.com/bennyguitar/SatelliteStore.git',
-    :tag => '1.0.0'
+    :tag => '1.2.0'
   }
   s.homepage    = 'https://github.com/bennyguitar'
   s.license     = 'License.md'
