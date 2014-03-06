@@ -184,7 +184,7 @@
     
     if(blockObject.completionBlock){
         
-        if(response.products){
+        if(response.products.count > 0){
             
             blockObject.completionBlock(YES, response.products, nil);
             
