@@ -56,7 +56,7 @@ typedef void (^RestoreProductsCompletion) (NSArray * productIdentifiers, NSError
 @property (nonatomic, retain) NSSet *InventoryIdentifiers;
 @property (nonatomic, strong) NSMutableArray * fetchProductsCompletionBlockObjects;
 @property (nonatomic, strong) NSMutableArray * purchaseCompletionBlockObjects;
-@property (nonatomic, strong, readonly) RestoreProductsCompletion restoreProductsCompletion;
+@property (nonatomic, copy, readwrite) RestoreProductsCompletion restoreProductsCompletion;
 
 
 // Singleton
