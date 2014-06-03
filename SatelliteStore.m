@@ -72,6 +72,8 @@
 
 @implementation SatelliteStore
 
+@synthesize restoreProductsCompletion;
+
 #pragma mark - Singleton Creation
 + (SatelliteStore *)shoppingCenter {
     
@@ -127,7 +129,7 @@
 #pragma mark - Restore Purchases
 - (void)restorePurchasesWithCompletion:(RestoreProductsCompletion)completion {
     
-    _restoreProductsCompletion = completion;
+    self.restoreProductsCompletion = completion;
     
     [[SKPaymentQueue defaultQueue] restoreCompletedTransactions];
     
@@ -247,9 +249,9 @@
 }
 -(void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error{
     
-    if(_restoreProductsCompletion){
+    if(self.restoreProductsCompletion){
         
-        _restoreProductsCompletion(nil, error);
+        self.restoreProductsCompletion(nil, error);
         
     }
     
@@ -257,23 +259,30 @@
 - (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue {
     
     //If there is a restore block, add the transactions product ids that were restored to array and call the block
-    if(_restoreProductsCompletion){
+    
+    
+    NSMutableArray * productIdentifiers = [NSMutableArray array];
+    
+    for(SKPaymentTransaction * transaction in queue.transactions){
         
-        NSMutableArray * productIdentifiers = [NSMutableArray array];
-        
-        for(SKPaymentTransaction * transaction in queue.transactions){
+        if(transaction.transactionState == SKPaymentTransactionStateRestored && transaction.payment.productIdentifier){
             
-            if(transaction.transactionState == SKPaymentTransactionStateRestored){
-                
-                [productIdentifiers addObject:transaction.payment.productIdentifier];
-                
-            }
+            [productIdentifiers addObject:transaction.payment.productIdentifier];
             
         }
         
-        _restoreProductsCompletion(productIdentifiers, nil);
+    }
+    
+    
+    
+    if(self.restoreProductsCompletion){
+        
+        self.restoreProductsCompletion(productIdentifiers, nil);
         
     }
+    
+    
+    
     
 }
 
@@ -305,7 +314,8 @@
 
 - (void)restoreTransaction:(SKPaymentTransaction *)transaction
 {
-    [self finishTransaction:transaction wasSuccessful:YES];
+    
+    //[self finishTransaction:transaction wasSuccessful:YES];
 }
 
 - (void)failedTransaction:(SKPaymentTransaction *)transaction
